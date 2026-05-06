@@ -1,0 +1,130 @@
+APP: System rezerwacji auta firmowego (Supabase)
+
+========================
+
+SETUP PROJEKTU
+========================
+[ ] Załóż projekt w Supabase
+[ ] Skopiuj URL projektu i anon public key
+[ ] Włącz Row Level Security (RLS) dla wszystkich tabel
+[ ] Przygotuj frontend (np. React / HTML + JS)
+[ ] Zainstaluj klienta supabase-js
+
+ISTNIEJĄCE TABELE W SUPABASE:
+
+Tabela: Users
+[ ] id (uuid, primary key)
+[ ] email (text)
+[ ] name (text)
+[ ] role (text: 'admin' | 'user' | 'portiernia')
+
+Tabela: Cars
+[ ] id (int, primary key)
+[ ] name (text)
+
+Tabela: Reservations
+[ ] id (int, primary key)
+[ ] car_id (int, foreign key -> cars.id)
+[ ] user_id (uuid, foreign key -> users.id)
+[ ] user_name (text)
+[ ] start_time (timestamp)
+[ ] end_time (timestamp)
+
+[ ] Włącz Supabase Auth (logowanie użytkowników)
+[ ] Po rejestracji dodaj wpis do tabeli "users"
+[ ] Powiąż auth.user.id z users.id
+
+ADMIN:
+[ ] Nadaje role
+[ ] Ma pełne prawa (read/insert/update/delete)
+
+USER:
+[ ] Może przeglądać rezerwacje
+[ ] Może dodawać rezerwacje
+[ ] NIE może edytować ani usuwać cudzych rezerwacji(swoje może)
+
+PORTIERNIA:
+[ ] To samo co user
+[ ] Może edytować rezerwacje
+[ ] Może usuwać rezerwacje
+
+Reservations:
+[ ] SELECT: wszyscy zalogowani mogą czytać
+[ ] INSERT: user i portiernia mogą dodawać
+[ ] UPDATE: tylko portiernia i admin
+[ ] DELETE: tylko portiernia i admin
+
+Users:
+[ ] SELECT: użytkownik widzi tylko siebie (lub admin wszystko)
+[ ] UPDATE: tylko admin
+
+Cars:
+[ ] SELECT: wszyscy
+[ ] INSERT/UPDATE/DELETE: tylko admin
+
+[ ] Przy tworzeniu rezerwacji:
+- pobierz user_id z auth
+- pobierz user_name z tabeli users
+- zapisz automatycznie (bez inputu)
+
+[ ] Sprawdzenie konfliktu:
+- czy istnieje rezerwacja gdzie:
+car_id = wybrane auto
+start_time < nowy_end
+end_time > nowy_start
+- jeśli TAK → blokuj zapis
+
+[ ] Walidacja:
+- start_time < end_time
+- brak pustych pól
+
+[ ] Logowanie użytkownika
+[ ] Widok listy rezerwacji
+[ ] Formularz dodawania rezerwacji:
+- wybór auta (dropdown)
+- wybór daty od/do
+
+[ ] Automatyczne przypisanie user_name
+
+[ ] Widok zależny od roli:
+ADMIN:
+[ ] panel zarządzania użytkownikami
+[ ] panel zarządzania autami
+
+USER:
+    [ ] lista rezerwacji
+    [ ] dodawanie rezerwacji
+
+PORTIERNIA:
+    [ ] lista rezerwacji
+    [ ] dodawanie rezerwacji
+    [ ] edycja rezerwacji
+    [ ] usuwanie rezerwacji
+
+[ ] Subskrypcja zmian w tabeli reservations (Supabase realtime)
+LUB
+[ ] Auto-refresh co 5–10 sekund
+
+[ ] Nie używaj service_role key w frontend
+[ ] Wszystkie operacje ograniczone przez RLS
+[ ] Walidacja danych po stronie frontend + backend (Supabase)
+
+[ ] Historia zmian rezerwacji
+[ ] Status rezerwacji (np. aktywna/anulowana)
+[ ] Powiadomienia (email / UI)
+[ ] Widok kalendarza
+
+[ ] Użytkownik loguje się
+[ ] Widzi rezerwacje wszystkich
+[ ] Może dodać rezerwację bez konfliktu
+[ ] user_name uzupełnia się automatycznie
+[ ] Portiernia może edytować i usuwać
+[ ] Admin zarządza użytkownikami i autami
+
+DANE DO POŁĄCZENIA Z SUPABASE:
+Project URL: https://svqwesxzdmbbevxjzveo.supabase.co
+Publishable key: sb_publishable_-NhY37Y5Znl_eOM_Ov_nTw_KvPXUXUf
+
+
+Użytkownik początkowo ma mieć rolę user - admin zarządza rolami.
+Przy rejestracji nowego użytkownika w aplikacji ma być  automatyczne dodanie usera do tabeli. Dane logowania są przechowywane Supabase w auth.users i według nich mają się użytkownicy logować. Pierwsze konto stworzone przy pierwszym uruchomineiu to admin z hasłem admin123.

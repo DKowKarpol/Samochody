@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rezerwacje aut firmowych</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>System rezerwacji auta firmowego</h1>
+
+      <section id="auth-section" class="card">
+        <h2>Logowanie</h2>
+        <p class="muted">
+          Konto startowe: <code>admin / admin123</code>.
+        </p>
+        <form id="auth-form" class="grid">
+          <label>
+            Login
+            <input id="login" type="text" required />
+          </label>
+          <label>
+            Hasło
+            <input id="password" type="password" minlength="6" required />
+          </label>
+          <div class="row">
+            <button type="submit">Zaloguj</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="app-section" class="hidden">
+        <div class="top-bar">
+          <div class="card user-panel">
+            <p id="user-info" class="muted"></p>
+            <button id="logout-btn">Wyloguj</button>
+          </div>
+        </div>
+
+        <div class="app-layout">
+          <aside class="card sidebar">
+            <h3>Dodaj rezerwację</h3>
+            <form id="reservation-form" class="grid">
+              <label>
+                Auto
+                <select id="car-select" required></select>
+              </label>
+              <label>
+                Data startu
+                <input id="start-date" type="date" required />
+              </label>
+              <label>
+                Godzina startu
+                <input id="start-time" type="time" required />
+              </label>
+              <label>
+                Data końca
+                <input id="end-date" type="date" required />
+              </label>
+              <label>
+                Godzina końca
+                <input id="end-time" type="time" required />
+              </label>
+              <label>
+                Uwagi (opcjonalnie)
+                <textarea id="notes" rows="3" placeholder="Np. wyjazd do klienta"></textarea>
+              </label>
+              <button type="submit">Dodaj rezerwację</button>
+            </form>
+            <div id="admin-shortcuts" class="grid admin-shortcuts hidden">
+              <button id="open-users-modal" type="button">Zarządzanie użytkownikami</button>
+              <button id="open-cars-modal" type="button">Zarządzanie autami</button>
+            </div>
+          </aside>
+
+          <section class="card planner-card">
+            <div class="row row-between">
+              <h3>Planer rezerwacji</h3>
+              <div class="row">
+                <button id="week-prev" type="button">Poprzedni tydzień</button>
+                <strong id="week-label"></strong>
+                <button id="week-next" type="button">Następny tydzień</button>
+              </div>
+            </div>
+            <div id="reservations"></div>
+          </section>
+        </div>
+      </section>
+
+      <div id="users-modal" class="modal hidden">
+        <div class="modal-content card">
+          <div class="row row-between">
+            <h3>Admin: zarządzanie użytkownikami</h3>
+            <button id="close-users-modal" type="button">Zamknij</button>
+          </div>
+          <form id="user-form" class="grid">
+            <label>
+              Login
+              <input id="new-user-login" required />
+            </label>
+            <label>
+              Imię
+              <input id="new-user-name" required />
+            </label>
+            <label>
+              Hasło
+              <input id="new-user-password" type="password" minlength="6" required />
+            </label>
+            <label>
+              Rola
+              <select id="new-user-role">
+                <option value="user">user</option>
+                <option value="portiernia">portiernia</option>
+                <option value="admin">admin</option>
+              </select>
+            </label>
+            <button type="submit">Dodaj użytkownika</button>
+          </form>
+          <div id="users-table"></div>
+        </div>
+      </div>
+
+      <div id="cars-modal" class="modal hidden">
+        <div class="modal-content card">
+          <div class="row row-between">
+            <h3>Admin: zarządzanie autami</h3>
+            <button id="close-cars-modal" type="button">Zamknij</button>
+          </div>
+          <form id="car-form" class="row">
+            <input id="new-car-name" placeholder="Nazwa auta" required />
+            <button type="submit">Dodaj auto</button>
+          </form>
+          <div id="cars-table"></div>
+        </div>
+      </div>
+
+      <p id="status" class="status"></p>
+    </main>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
