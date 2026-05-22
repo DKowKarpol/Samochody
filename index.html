@@ -68,6 +68,9 @@
               </label>
               <button type="submit">Dodaj rezerwację</button>
             </form>
+            <button id="open-longterm-modal" type="button" class="btn-secondary">
+              Rezerwacja długoterminowa
+            </button>
             <div id="admin-shortcuts" class="grid admin-shortcuts hidden">
               <button id="open-users-modal" type="button">Zarządzanie użytkownikami</button>
               <button id="open-cars-modal" type="button">Zarządzanie autami</button>
@@ -83,6 +86,7 @@
                 <button id="week-next" type="button">Następny tydzień</button>
               </div>
             </div>
+            <p class="muted planner-hint">Przeciągnij na inny dzień (ta sama godzina) lub w poziomie na tym samym dniu. Rozciągnij krawędzie, aby zmienić czas (krok 15 min).</p>
             <div id="reservations"></div>
           </section>
         </div>
@@ -118,6 +122,65 @@
             <button type="submit">Dodaj użytkownika</button>
           </form>
           <div id="users-table"></div>
+        </div>
+      </div>
+
+      <div id="longterm-modal" class="modal hidden">
+        <div class="modal-content card reservation-modal-content">
+          <div class="row row-between">
+            <h3>Rezerwacja długoterminowa</h3>
+            <button id="close-longterm-modal" type="button">Zamknij</button>
+          </div>
+          <p class="muted">W wybranym zakresie dni tworzona jest osobna rezerwacja na każdy dzień, z tymi samymi godzinami.</p>
+          <form id="longterm-form" class="grid">
+            <label>
+              Auto
+              <select id="longterm-car-select" required></select>
+            </label>
+            <label>
+              Od dnia
+              <input id="longterm-from-date" type="date" required />
+            </label>
+            <label>
+              Do dnia
+              <input id="longterm-to-date" type="date" required />
+            </label>
+            <label>
+              Godzina startu (codziennie)
+              <input id="longterm-start-time" type="time" value="06:00" required />
+            </label>
+            <label>
+              Godzina końca (codziennie)
+              <input id="longterm-end-time" type="time" value="14:00" required />
+            </label>
+            <label>
+              Uwagi (opcjonalnie)
+              <textarea id="longterm-notes" rows="3"></textarea>
+            </label>
+            <button type="submit">Utwórz rezerwacje cykliczne</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="reservation-modal" class="modal hidden">
+        <div class="modal-content card reservation-modal-content">
+          <div class="row row-between">
+            <h3>Szczegóły rezerwacji</h3>
+            <button id="close-reservation-modal" type="button">Zamknij</button>
+          </div>
+          <dl class="reservation-details">
+            <dt>Auto</dt>
+            <dd id="reservation-modal-car"></dd>
+            <dt>Rezerwujący</dt>
+            <dd id="reservation-modal-user"></dd>
+            <dt>Od</dt>
+            <dd id="reservation-modal-start"></dd>
+            <dt>Do</dt>
+            <dd id="reservation-modal-end"></dd>
+            <dt>Uwagi</dt>
+            <dd id="reservation-modal-notes"></dd>
+          </dl>
+          <div id="reservation-modal-actions" class="row reservation-modal-actions"></div>
         </div>
       </div>
 

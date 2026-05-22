@@ -7,6 +7,7 @@ body {
   font-family: "Segoe UI", Arial, sans-serif;
   background: linear-gradient(180deg, #f6fbff 0%, #eef4ff 100%);
   color: #1d2a3a;
+  overflow-x: hidden;
 }
 
 .container {
@@ -103,7 +104,7 @@ button:hover {
 
 .app-layout {
   display: grid;
-  grid-template-columns: 24% 76%;
+  grid-template-columns: minmax(220px, 22%) minmax(0, 1fr);
   gap: 12px;
   align-items: start;
 }
@@ -117,12 +118,22 @@ button:hover {
   width: 100%;
 }
 
+.planner-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+}
+
 .planner-wrap {
   width: 100%;
-  overflow: hidden;
   border: 1px solid #d5e1f5;
   border-radius: 12px;
   background: #f9fcff;
+}
+
+.planner-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
 }
 
 .planner-head {
@@ -134,63 +145,163 @@ button:hover {
   z-index: 3;
 }
 
-.planner-head-cell {
-  padding: 8px 6px;
-  text-align: center;
-  font-weight: 700;
-  border-left: 1px solid #d8e5f8;
-  font-size: 13px;
-}
-
-.planner-head-time {
+.planner-head-corner {
   padding: 8px 6px;
   font-weight: 700;
   text-align: center;
+  border-right: 1px solid #d8e5f8;
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: #eef5ff;
 }
 
-.planner-body {
-  display: grid;
-  height: calc(100vh - 300px);
-  min-height: 680px;
-}
-
-.planner-hours {
+.planner-hours-header {
   position: relative;
-  border-right: 1px solid #cfe0f7;
+  height: 32px;
+  min-width: 0;
+  border-left: 1px solid #d8e5f8;
   background: #f1f6ff;
 }
 
 .hour-label {
   position: absolute;
-  left: 6px;
-  transform: translateY(-50%);
-  font-size: 11px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
   color: #537094;
+  white-space: nowrap;
 }
 
-.planner-day {
+.hour-label-start {
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.hour-label-end {
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.planner-body {
+  min-width: 0;
+}
+
+.planner-row {
+  display: grid;
+  min-width: 0;
+  border-bottom: 1px solid #e3ecf9;
+}
+
+.planner-row:last-child {
+  border-bottom: none;
+}
+
+.planner-day-label {
+  padding: 10px 8px;
+  font-weight: 700;
+  font-size: 13px;
+  border-right: 1px solid #d8e5f8;
+  background: #f1f6ff;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.planner-day-track {
   position: relative;
-  border-left: 1px solid #d8e5f8;
+  min-width: 0;
+  --planner-hours: 16;
   background-image: repeating-linear-gradient(
-    to bottom,
+    to right,
     transparent,
-    transparent calc((100% / 24) - 1px),
-    #dce8fa calc((100% / 24) - 1px),
-    #dce8fa calc(100% / 24)
+    transparent calc((100% / var(--planner-hours)) - 1px),
+    #dce8fa calc((100% / var(--planner-hours)) - 1px),
+    #dce8fa calc(100% / var(--planner-hours))
   );
+}
+
+.planner-day-track.drop-target {
+  background-color: #e8f2ff;
+  outline: 2px dashed #7eb0f7;
+  outline-offset: -2px;
+}
+
+.planner-day-track.drop-target-invalid {
+  background-color: #ffecec;
+  outline: 2px dashed #e57373;
+  outline-offset: -2px;
 }
 
 .planner-item {
   position: absolute;
-  left: 4px;
-  right: 4px;
+  box-sizing: border-box;
   border-radius: 8px;
-  padding: 6px;
-  font-size: 12px;
+  font-size: 11px;
   background: #dcebff;
   border: 1px solid #9dc0f7;
   color: #1d3557;
   overflow: hidden;
+  z-index: 1;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.planner-item.draggable:hover {
+  z-index: 5;
+  box-shadow: 0 4px 14px rgba(36, 74, 114, 0.18);
+}
+
+.planner-item.is-dragging,
+.planner-item.is-active {
+  z-index: 6;
+  cursor: grabbing;
+  opacity: 0.92;
+  box-shadow: 0 6px 18px rgba(36, 74, 114, 0.25);
+}
+
+.planner-item-body {
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  height: 100%;
+  pointer-events: none;
+}
+
+.planner-item-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  z-index: 2;
+  cursor: ew-resize;
+}
+
+.planner-item-handle-start {
+  left: 0;
+  border-radius: 8px 0 0 8px;
+}
+
+.planner-item-handle-end {
+  right: 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.planner-item-handle:hover {
+  background: rgba(76, 139, 245, 0.25);
+}
+
+.planner-item:not(.draggable) {
+  cursor: pointer;
+}
+
+.planner-item.past {
+  cursor: pointer;
 }
 
 .planner-item.mine {
@@ -198,19 +309,48 @@ button:hover {
   border-color: #8ad0a3;
 }
 
+.planner-item.past {
+  background: #ffd8d8;
+  border-color: #e57373;
+  color: #7a1f1f;
+}
+
+.planner-item.past.mine {
+  background: #ffc9c9;
+  border-color: #d32f2f;
+}
+
 .planner-item-title {
   font-weight: 700;
-  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planner-item-user {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .planner-item-meta {
-  font-size: 11px;
-  margin-bottom: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.9;
 }
 
-.planner-item-actions {
-  display: flex;
-  gap: 4px;
+.btn-secondary {
+  width: 100%;
+  margin-top: 10px;
+  background: #5b6f86;
+}
+
+.btn-secondary:hover {
+  background: #4a5c70;
 }
 
 .admin-shortcuts {
@@ -218,9 +358,69 @@ button:hover {
   margin-top: 14px;
 }
 
-.planner-item-actions button {
-  padding: 4px 6px;
-  font-size: 11px;
+.reservation-modal-content {
+  width: min(480px, 96vw);
+}
+
+.reservation-details {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 12px;
+  margin: 0 0 16px;
+}
+
+.reservation-details dt {
+  margin: 0;
+  font-weight: 700;
+  color: #537094;
+}
+
+.reservation-details dd {
+  margin: 0;
+}
+
+.reservation-modal-actions {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#reservation-modal-delete {
+  background: #d92d20;
+}
+
+#reservation-modal-delete:hover {
+  background: #b42318;
+}
+
+@media (max-width: 1100px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .user-panel {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 10px;
+  }
+
+  .row-between {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .planner-day-label {
+    font-size: 12px;
+    padding: 8px 4px;
+  }
 }
 
 .modal {
