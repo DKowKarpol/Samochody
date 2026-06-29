@@ -51,16 +51,16 @@
                 <input id="start-date" type="date" required />
               </label>
               <label>
-                Godzina startu
-                <input id="start-time" type="time" required />
+                Godzina startu (06:00–22:00)
+                <input id="start-time" type="time" min="06:00" max="22:00" required />
               </label>
               <label>
                 Data końca
                 <input id="end-date" type="date" required />
               </label>
               <label>
-                Godzina końca
-                <input id="end-time" type="time" required />
+                Godzina końca (06:00–22:00)
+                <input id="end-time" type="time" min="06:00" max="22:00" required />
               </label>
               <label>
                 Uwagi (opcjonalnie)
@@ -146,12 +146,12 @@
               <input id="longterm-to-date" type="date" required />
             </label>
             <label>
-              Godzina startu (codziennie)
-              <input id="longterm-start-time" type="time" value="06:00" required />
+              Godzina startu (codziennie, 06:00–22:00)
+              <input id="longterm-start-time" type="time" min="06:00" max="22:00" value="06:00" required />
             </label>
             <label>
-              Godzina końca (codziennie)
-              <input id="longterm-end-time" type="time" value="14:00" required />
+              Godzina końca (codziennie, 06:00–22:00)
+              <input id="longterm-end-time" type="time" min="06:00" max="22:00" value="14:00" required />
             </label>
             <label>
               Uwagi (opcjonalnie)

@@ -1,3 +1,5 @@
+import { applyBookingTimeLimits } from "../utils/date.js";
+
 const longtermModal = document.querySelector("#longterm-modal");
 const openLongtermBtn = document.querySelector("#open-longterm-modal");
 const closeLongtermBtn = document.querySelector("#close-longterm-modal");
@@ -8,6 +10,8 @@ const longtermToDate = document.querySelector("#longterm-to-date");
 const longtermStartTime = document.querySelector("#longterm-start-time");
 const longtermEndTime = document.querySelector("#longterm-end-time");
 const longtermNotes = document.querySelector("#longterm-notes");
+
+applyBookingTimeLimits(longtermStartTime, longtermEndTime);
 
 export function syncLongtermCarOptions(cars) {
   longtermCarSelect.innerHTML = cars

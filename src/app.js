@@ -2,11 +2,15 @@ import { supabase, ROLES } from "./config.js";
 import { appState } from "./state.js";
 import {
   addDays,
+  applyBookingTimeLimits,
   buildDateTime,
+  clampTimeToBookingWindow,
   enumerateCalendarDays,
   getMinBookingDate,
+  isDateTimeWithinBookingWindow,
   parseDbTimestamp,
   toLocalInputValue,
+  validateBookingTimes,
 } from "./utils/date.js";
 import {
   setupLongtermModal,
@@ -80,9 +84,11 @@ function normalizeLogin(login) {
 }
 
 function setBookingMinNow() {
+  applyBookingTimeLimits(startInput, endInput);
+
   const minDate = getMinBookingDate();
   const dateValue = toLocalInputValue(minDate).slice(0, 10);
-  const timeValue = toLocalInputValue(minDate).slice(11, 16);
+  let timeValue = clampTimeToBookingWindow(toLocalInputValue(minDate).slice(11, 16));
   startDateInput.min = dateValue;
   endDateInput.min = dateValue;
   if (!startDateInput.value) startDateInput.value = dateValue;
@@ -90,7 +96,7 @@ function setBookingMinNow() {
   if (!startInput.value) startInput.value = timeValue;
   if (!endInput.value) {
     const plusHour = new Date(minDate.getTime() + 60 * 60 * 1000);
-    endInput.value = toLocalInputValue(plusHour).slice(11, 16);
+    endInput.value = clampTimeToBookingWindow(toLocalInputValue(plusHour).slice(11, 16));
     endDateInput.value = toLocalInputValue(plusHour).slice(0, 10);
   }
   setLongtermMinDates(dateValue);
@@ -228,9 +234,8 @@ async function createLongTermReservations({ carId, fromDate, toDate, dailyStart,
   if (fromDate > toDate) {
     return setStatus("Data „Od dnia” musi być wcześniejsza lub równa „Do dnia”.", true);
   }
-  if (dailyStart >= dailyEnd) {
-    return setStatus("Godzina końca musi być późniejsza niż startu.", true);
-  }
+  const timeError = validateBookingTimes(dailyStart, dailyEnd);
+  if (timeError) return setStatus(timeError, true);
 
   const days = enumerateCalendarDays(fromDate, toDate);
   const minBooking = getMinBookingDate();
@@ -289,6 +294,9 @@ async function createReservation(event) {
   if (!startDateInput.value || !startInput.value || !endDateInput.value || !endInput.value) {
     return setStatus("Wszystkie pola daty i czasu są wymagane.", true);
   }
+  const timeError = validateBookingTimes(startInput.value, endInput.value);
+  if (timeError) return setStatus(timeError, true);
+
   const startRaw = buildDateTime(startDateInput.value, startInput.value);
   const endRaw = buildDateTime(endDateInput.value, endInput.value);
   if (!carId || !startRaw || !endRaw) return setStatus("Wszystkie pola są wymagane.", true);
@@ -341,6 +349,9 @@ async function updateReservationPrompt(id) {
   const startDate = new Date(nextStart.replace(" ", "T"));
   const endDate = new Date(nextEnd.replace(" ", "T"));
   if (startDate >= endDate) return setStatus("Start musi być wcześniej niż koniec.", true);
+  if (!isDateTimeWithinBookingWindow(startDate) || !isDateTimeWithinBookingWindow(endDate)) {
+    return setStatus("Godziny muszą być w zakresie 06:00–22:00.", true);
+  }
   await saveReservationTimes(id, startDate, endDate);
   closeReservationModal();
 }

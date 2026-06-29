@@ -1,3 +1,54 @@
+export const BOOKING_HOUR_MIN = 6;
+export const BOOKING_HOUR_MAX = 22;
+export const BOOKING_TIME_MIN = "06:00";
+export const BOOKING_TIME_MAX = "22:00";
+
+export function timeToMinutes(timeValue) {
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+export function isTimeWithinBookingWindow(timeValue) {
+  if (!timeValue) return false;
+  const minutes = timeToMinutes(timeValue);
+  return minutes >= BOOKING_HOUR_MIN * 60 && minutes <= BOOKING_HOUR_MAX * 60;
+}
+
+export function isDateTimeWithinBookingWindow(date) {
+  const pad = (v) => String(v).padStart(2, "0");
+  const timeValue = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return isTimeWithinBookingWindow(timeValue);
+}
+
+export function clampTimeToBookingWindow(timeValue) {
+  if (!timeValue) return BOOKING_TIME_MIN;
+  const minutes = timeToMinutes(timeValue);
+  const min = BOOKING_HOUR_MIN * 60;
+  const max = BOOKING_HOUR_MAX * 60;
+  const clamped = Math.max(min, Math.min(max, minutes));
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+export function validateBookingTimes(startTime, endTime) {
+  if (!isTimeWithinBookingWindow(startTime) || !isTimeWithinBookingWindow(endTime)) {
+    return `Godziny muszą być w zakresie ${BOOKING_TIME_MIN}–${BOOKING_TIME_MAX}.`;
+  }
+  if (startTime >= endTime) {
+    return "Godzina końca musi być późniejsza niż startu.";
+  }
+  return null;
+}
+
+export function applyBookingTimeLimits(...inputs) {
+  for (const input of inputs) {
+    if (!input) continue;
+    input.min = BOOKING_TIME_MIN;
+    input.max = BOOKING_TIME_MAX;
+  }
+}
+
 export function toDbLocalTimestamp(value) {
   return `${value.replace("T", " ")}:00`;
 }
