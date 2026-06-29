@@ -12,8 +12,19 @@ create table if not exists public."Reservations" (
   uwagi text
 );
 
-alter table public."Reservations"
-  add constraint if not exists reservations_time_valid check (start_time < end_time);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint c
+    join pg_class t on t.oid = c.conrelid
+    where t.relname = 'Reservations'
+      and c.conname = 'reservations_time_valid'
+  ) then
+    alter table public."Reservations"
+      add constraint reservations_time_valid check (start_time < end_time);
+  end if;
+end $$;
 
 create or replace function public.check_reservation_conflict()
 returns trigger

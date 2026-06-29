@@ -40,13 +40,16 @@ const endDateInput = document.querySelector("#end-date");
 const endInput = document.querySelector("#end-time");
 const notesInput = document.querySelector("#notes");
 
-const editReservationCard = document.querySelector("#edit-reservation-card");
-const editReservationForm = document.querySelector("#edit-reservation-form");
-const editStartInput = document.querySelector("#edit-start-datetime");
-const editEndInput = document.querySelector("#edit-end-datetime");
-const editNotesInput = document.querySelector("#edit-notes");
-const cancelEditBtn = document.querySelector("#cancel-edit");
-const deleteEditBtn = document.querySelector("#delete-edit");
+const editReservationModal = document.querySelector("#edit-reservation-modal");
+const editReservationModalForm = document.querySelector("#edit-reservation-modal-form");
+const editReservationCar = document.querySelector("#edit-reservation-car");
+const editReservationPerson = document.querySelector("#edit-reservation-person");
+const editStartInput = document.querySelector("#edit-modal-start-datetime");
+const editEndInput = document.querySelector("#edit-modal-end-datetime");
+const editNotesInput = document.querySelector("#edit-modal-notes");
+const closeEditReservationModalBtn = document.querySelector("#close-edit-reservation-modal");
+const deleteReservationButton = document.querySelector("#delete-reservation-button");
+const cancelEditModalBtn = document.querySelector("#cancel-edit-modal");
 
 const weekPrevBtn = document.querySelector("#week-prev");
 const weekNextBtn = document.querySelector("#week-next");
@@ -78,8 +81,8 @@ function setBookingMinNow() {
 }
 
 function closeEditReservation() {
-  editReservationForm.dataset.reservationId = "";
-  editReservationCard.classList.add("hidden");
+  editReservationModal.dataset.reservationId = "";
+  editReservationModal.classList.add("hidden");
 }
 
 async function fetchCars() {
@@ -254,16 +257,18 @@ function openEditReservationForm(id) {
   const end = parseDbTimestamp(reservation.end_time);
   if (!start || !end) return;
 
-  editReservationForm.dataset.reservationId = String(id);
+  editReservationModal.dataset.reservationId = String(id);
+  editReservationCar.value = reservation.Cars?.name || reservation.car_id;
+  editReservationPerson.value = reservation.user_name || "";
   editStartInput.value = toLocalInputValue(start);
   editEndInput.value = toLocalInputValue(end);
   editNotesInput.value = reservation.uwagi || "";
-  editReservationCard.classList.remove("hidden");
+  editReservationModal.classList.remove("hidden");
 }
 
 async function saveEditedReservation(event) {
   event.preventDefault();
-  const reservationId = Number(editReservationForm.dataset.reservationId);
+  const reservationId = Number(editReservationModal.dataset.reservationId);
   if (!reservationId) return;
 
   const startDate = new Date(editStartInput.value);
@@ -324,10 +329,16 @@ setupPlannerInteractions(reservationsContainer, {
 });
 
 reservationForm.addEventListener("submit", createReservation);
-editReservationForm.addEventListener("submit", saveEditedReservation);
-cancelEditBtn.addEventListener("click", closeEditReservation);
-deleteEditBtn.addEventListener("click", async () => {
-  const reservationId = Number(editReservationForm.dataset.reservationId);
+editReservationModalForm.addEventListener("submit", saveEditedReservation);
+closeEditReservationModalBtn.addEventListener("click", closeEditReservation);
+cancelEditModalBtn.addEventListener("click", closeEditReservation);
+
+document.addEventListener("click", (event) => {
+  if (event.target === editReservationModal) closeEditReservation();
+});
+
+deleteReservationButton.addEventListener("click", async () => {
+  const reservationId = Number(editReservationModal.dataset.reservationId);
   if (!reservationId) return;
   await deleteReservation(reservationId);
   closeEditReservation();

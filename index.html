@@ -46,28 +46,6 @@
               </label>
               <button type="submit">Dodaj rezerwację</button>
             </form>
-            <div id="edit-reservation-card" class="card hidden">
-              <h3>Edytuj rezerwację</h3>
-              <form id="edit-reservation-form" class="grid">
-                <label>
-                  Data i godzina startu
-                  <input id="edit-start-datetime" type="datetime-local" required />
-                </label>
-                <label>
-                  Data i godzina końca
-                  <input id="edit-end-datetime" type="datetime-local" required />
-                </label>
-                <label>
-                  Uwagi
-                  <textarea id="edit-notes" rows="3" placeholder="Np. wyjazd do klienta"></textarea>
-                </label>
-                <div class="row">
-                  <button type="submit">Zapisz zmiany</button>
-                  <button id="delete-edit" type="button" class="btn-danger">Usuń rezerwację</button>
-                  <button id="cancel-edit" type="button">Anuluj</button>
-                </div>
-              </form>
-            </div>
             <button id="open-longterm-modal" type="button" class="btn-secondary">
               Rezerwacja długoterminowa
             </button>
@@ -129,6 +107,41 @@
         </div>
       </div>
 
+      <div id="edit-reservation-modal" class="modal hidden">
+        <div class="modal-content card reservation-modal-content">
+          <div class="row row-between">
+            <h3>Edytuj rezerwację</h3>
+            <button id="close-edit-reservation-modal" type="button">Zamknij</button>
+          </div>
+          <form id="edit-reservation-modal-form" class="grid">
+            <label>
+              Auto
+              <input id="edit-reservation-car" type="text" disabled />
+            </label>
+            <label>
+              Osoba rezerwująca
+              <input id="edit-reservation-person" type="text" disabled />
+            </label>
+            <label>
+              Data i godzina startu
+              <input id="edit-modal-start-datetime" type="datetime-local" required />
+            </label>
+            <label>
+              Data i godzina końca
+              <input id="edit-modal-end-datetime" type="datetime-local" required />
+            </label>
+            <label>
+              Uwagi
+              <textarea id="edit-modal-notes" rows="3" placeholder="Np. wyjazd do klienta"></textarea>
+            </label>
+            <div class="row row-between">
+              <button type="submit">Zapisz zmiany</button>
+              <button id="delete-reservation-button" type="button" class="btn-danger">Usuń rezerwację</button>
+              <button id="cancel-edit-modal" type="button">Anuluj</button>
+            </div>
+          </form>
+        </div>
+      </div>
 
       <p id="status" class="status"></p>
     </main>

@@ -310,6 +310,12 @@ button:hover {
   cursor: pointer;
 }
 
+.planner-item.active {
+  background: #d7f3e7;
+  border-color: #4caf50;
+  color: #1b3b22;
+}
+
 .planner-item.mine {
   background: #dff8e8;
   border-color: #8ad0a3;

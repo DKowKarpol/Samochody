@@ -90,14 +90,15 @@ export function renderReservations() {
           const left = toWindowPercent(startMinutes);
           const width = Math.max(toWindowPercent(durationMinutes), 0.5);
           const top = ROW_PADDING + item.lane * (CARD_HEIGHT + CARD_GAP);
-          const pastClass = item.end < now ? "past" : "";
+          const isPast = item.end < now;
+          const statusClass = isPast ? "past" : "active";
           const userName = escapeHtml(r.user_name || "-");
-          const editable = item.end >= now;
+          const editable = !isPast;
           const canResizeStart = editable && item.visibleStart.getTime() === item.start.getTime();
           const canResizeEnd = editable && item.visibleEnd.getTime() === item.end.getTime();
           const durationMs = item.end.getTime() - item.start.getTime();
 
-          return `<div class="planner-item ${pastClass}${editable ? " draggable" : ""}"
+          return `<div class="planner-item ${statusClass}${editable ? " draggable" : ""}"
             style="left:${left}%;width:${width}%;top:${top}px;height:${CARD_HEIGHT}px"
             data-reservation-id="${r.id}"
             data-day-index="${dayIndex}"
