@@ -1,23 +1,18 @@
 # System rezerwacji auta firmowego
 
-Prosta aplikacja frontendowa oparta o Supabase Auth + RLS.
+Prosta aplikacja frontendowa do rezerwacji aut.
 
 ## Co zawiera
 
-- logowanie i rejestracja użytkowników (`auth.users`),
-- automatyczne tworzenie profilu w tabeli `public.users`,
-- automatyczne ustawienie pierwszego zarejestrowanego użytkownika jako `admin`,
-- role: `admin`, `user`, `portiernia`,
-- lista i dodawanie rezerwacji,
+- lista rezerwacji,
+- operacje CRUD wtkonywalne na rezerwacjach,
 - walidacja dat i blokada konfliktów (frontend + trigger SQL),
-- widoki zależne od roli,
-- zarządzanie użytkownikami i autami dla admina,
 - historia zmian rezerwacji (`reservation_history`),
 - realtime dla `reservations`.
 
 ## Uruchomienie
 
-Ten projekt może działać z SQL Server zamiast Supabase. Użyj tego samego pliku `supabase/schema.sql` do utworzenia tabel i struktur, ale połącz się z SQL Server w backendzie.
+Ten projekt może działać z SQL Server lub Supabase. Użyj  pliku `supabase/schema.sql` do utworzenia tabel i struktur i połącz się z SQL Server w backendzie lub odpowiednio z Supabase.
 
 1. Skonfiguruj plik `.env` w katalogu głównym projektu na podstawie `./.env.example`.
 2. Zainstaluj zależności backendu:
