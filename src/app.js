@@ -1,4 +1,4 @@
-import { supabase } from "./config.js";
+import { API_BASE_URL } from "./config.js";
 import { appState } from "./state.js";
 import {
   addDays,
@@ -86,9 +86,12 @@ function closeEditReservation() {
 }
 
 async function fetchCars() {
-  const { data, error } = await supabase.from("Cars").select("*").order("name");
-  if (error) throw error;
-  appState.cars = data || [];
+  const response = await fetch(`${API_BASE_URL}/api/cars`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `Błąd ładowania aut: ${response.status}`);
+  }
+  appState.cars = await response.json();
   carSelect.innerHTML = `
     <option value="">Wybierz auto</option>
     ${appState.cars
@@ -305,13 +308,9 @@ async function refreshData() {
 }
 
 function subscribeRealtime() {
-  if (appState.realtimeChannel) supabase.removeChannel(appState.realtimeChannel);
-  appState.realtimeChannel = supabase
-    .channel("reservations-live")
-    .on("postgres_changes", { event: "*", schema: "public", table: "Reservations" }, async () => {
-      await fetchReservations();
-    })
-    .subscribe();
+  // SQL Server backend does not provide realtime updates for this frontend demo.
+  // Repeated polling or a websocket layer can be added later if needed.
+  return;
 }
 
 const reservationsContainer = getReservationsContainer();
