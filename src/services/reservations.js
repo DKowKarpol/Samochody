@@ -4,7 +4,7 @@ import { toDbLocalTimestamp, toLocalInputValue } from "../utils/date.js";
 export async function fetchReservationsFromDb() {
   const { data, error } = await supabase
     .from("Reservations")
-    .select("id,car_id,user_id,user_name,start_time,end_time,uwagi,Cars(name)")
+    .select("id,car_id,user_name,start_time,end_time,uwagi,Cars(name)")
     .order("start_time", { ascending: true });
   if (error) throw error;
   return data || [];
@@ -40,10 +40,17 @@ export async function updateReservationTimes(id, startDate, endDate) {
   if (error) throw error;
 }
 
-export async function deleteReservationFromDb(actorId, reservationId) {
-  const { error } = await supabase.rpc("app_delete_reservation", {
-    p_actor_id: actorId,
-    p_reservation_id: reservationId,
-  });
+export async function updateReservation(id, startDate, endDate, notes) {
+  const payload = {
+    start_time: toDbLocalTimestamp(toLocalInputValue(startDate)),
+    end_time: toDbLocalTimestamp(toLocalInputValue(endDate)),
+    uwagi: notes || null,
+  };
+  const { error } = await supabase.from("Reservations").update(payload).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteReservationFromDb(reservationId) {
+  const { error } = await supabase.from("Reservations").delete().eq("id", reservationId);
   if (error) throw error;
 }

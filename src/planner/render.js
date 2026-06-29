@@ -1,6 +1,5 @@
 import { appState } from "../state.js";
 import { addDays, parseDbTimestamp } from "../utils/date.js";
-import { canEditReservation } from "../permissions.js";
 import { PLANNER_GRID } from "./constants.js";
 import {
   clipSegmentToDayWindow,
@@ -36,7 +35,6 @@ export function renderReservations() {
   renderWeekLabel();
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(appState.weekStart, i));
   const now = new Date();
-  const profile = appState.profile;
   const hourLabels = renderHourLabelsHtml();
 
   const dayRows = weekDays
@@ -92,15 +90,14 @@ export function renderReservations() {
           const left = toWindowPercent(startMinutes);
           const width = Math.max(toWindowPercent(durationMinutes), 0.5);
           const top = ROW_PADDING + item.lane * (CARD_HEIGHT + CARD_GAP);
-          const ownClass = r.user_id === profile?.id ? "mine" : "";
           const pastClass = item.end < now ? "past" : "";
           const userName = escapeHtml(r.user_name || "-");
-          const editable = canEditReservation(profile, r) && item.end >= now;
+          const editable = item.end >= now;
           const canResizeStart = editable && item.visibleStart.getTime() === item.start.getTime();
           const canResizeEnd = editable && item.visibleEnd.getTime() === item.end.getTime();
           const durationMs = item.end.getTime() - item.start.getTime();
 
-          return `<div class="planner-item ${ownClass} ${pastClass}${editable ? " draggable" : ""}"
+          return `<div class="planner-item ${pastClass}${editable ? " draggable" : ""}"
             style="left:${left}%;width:${width}%;top:${top}px;height:${CARD_HEIGHT}px"
             data-reservation-id="${r.id}"
             data-day-index="${dayIndex}"

@@ -14,9 +14,10 @@ const longtermNotes = document.querySelector("#longterm-notes");
 applyBookingTimeLimits(longtermStartTime, longtermEndTime);
 
 export function syncLongtermCarOptions(cars) {
-  longtermCarSelect.innerHTML = cars
-    .map((car) => `<option value="${car.id}">${car.name}</option>`)
-    .join("");
+  longtermCarSelect.innerHTML = `
+    <option value="">Wybierz auto</option>
+    ${cars.map((car) => `<option value="${car.id}">${car.name}</option>`).join("")}
+  `;
 }
 
 export function setLongtermMinDates(dateValue) {

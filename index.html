@@ -10,33 +10,7 @@
     <main class="container">
       <h1>System rezerwacji auta firmowego</h1>
 
-      <section id="auth-section" class="card">
-        <h2>Logowanie</h2>
-        <p class="muted">
-          Konto startowe: <code>admin / admin123</code>.
-        </p>
-        <form id="auth-form" class="grid">
-          <label>
-            Login
-            <input id="login" type="text" required />
-          </label>
-          <label>
-            Hasło
-            <input id="password" type="password" minlength="6" required />
-          </label>
-          <div class="row">
-            <button type="submit">Zaloguj</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="app-section" class="hidden">
-        <div class="top-bar">
-          <div class="card user-panel">
-            <p id="user-info" class="muted"></p>
-            <button id="logout-btn">Wyloguj</button>
-          </div>
-        </div>
+      <section id="app-section">
 
         <div class="app-layout">
           <aside class="card sidebar">
@@ -45,6 +19,10 @@
               <label>
                 Auto
                 <select id="car-select" required></select>
+              </label>
+              <label>
+                Osoba rezerwująca
+                <input id="person-name" type="text" required />
               </label>
               <label>
                 Data startu
@@ -68,13 +46,31 @@
               </label>
               <button type="submit">Dodaj rezerwację</button>
             </form>
+            <div id="edit-reservation-card" class="card hidden">
+              <h3>Edytuj rezerwację</h3>
+              <form id="edit-reservation-form" class="grid">
+                <label>
+                  Data i godzina startu
+                  <input id="edit-start-datetime" type="datetime-local" required />
+                </label>
+                <label>
+                  Data i godzina końca
+                  <input id="edit-end-datetime" type="datetime-local" required />
+                </label>
+                <label>
+                  Uwagi
+                  <textarea id="edit-notes" rows="3" placeholder="Np. wyjazd do klienta"></textarea>
+                </label>
+                <div class="row">
+                  <button type="submit">Zapisz zmiany</button>
+                  <button id="delete-edit" type="button" class="btn-danger">Usuń rezerwację</button>
+                  <button id="cancel-edit" type="button">Anuluj</button>
+                </div>
+              </form>
+            </div>
             <button id="open-longterm-modal" type="button" class="btn-secondary">
               Rezerwacja długoterminowa
             </button>
-            <div id="admin-shortcuts" class="grid admin-shortcuts hidden">
-              <button id="open-users-modal" type="button">Zarządzanie użytkownikami</button>
-              <button id="open-cars-modal" type="button">Zarządzanie autami</button>
-            </div>
           </aside>
 
           <section class="card planner-card">
@@ -86,44 +82,11 @@
                 <button id="week-next" type="button">Następny tydzień</button>
               </div>
             </div>
-            <p class="muted planner-hint">Przeciągnij na inny dzień (ta sama godzina) lub w poziomie na tym samym dniu. Rozciągnij krawędzie, aby zmienić czas (krok 15 min).</p>
+            <p class="muted planner-hint">Przeciągnij na inny dzień lub w poziomie na tym samym dniu. Rozciągnij krawędzie, aby zmienić czas (krok 15 min).</p>
             <div id="reservations"></div>
           </section>
         </div>
       </section>
-
-      <div id="users-modal" class="modal hidden">
-        <div class="modal-content card">
-          <div class="row row-between">
-            <h3>Admin: zarządzanie użytkownikami</h3>
-            <button id="close-users-modal" type="button">Zamknij</button>
-          </div>
-          <form id="user-form" class="grid">
-            <label>
-              Login
-              <input id="new-user-login" required />
-            </label>
-            <label>
-              Imię
-              <input id="new-user-name" required />
-            </label>
-            <label>
-              Hasło
-              <input id="new-user-password" type="password" minlength="6" required />
-            </label>
-            <label>
-              Rola
-              <select id="new-user-role">
-                <option value="user">user</option>
-                <option value="portiernia">portiernia</option>
-                <option value="admin">admin</option>
-              </select>
-            </label>
-            <button type="submit">Dodaj użytkownika</button>
-          </form>
-          <div id="users-table"></div>
-        </div>
-      </div>
 
       <div id="longterm-modal" class="modal hidden">
         <div class="modal-content card reservation-modal-content">
@@ -136,6 +99,10 @@
             <label>
               Auto
               <select id="longterm-car-select" required></select>
+            </label>
+            <label>
+              Osoba rezerwująca
+              <input id="longterm-person-name" type="text" required />
             </label>
             <label>
               Od dnia
@@ -162,41 +129,6 @@
         </div>
       </div>
 
-      <div id="reservation-modal" class="modal hidden">
-        <div class="modal-content card reservation-modal-content">
-          <div class="row row-between">
-            <h3>Szczegóły rezerwacji</h3>
-            <button id="close-reservation-modal" type="button">Zamknij</button>
-          </div>
-          <dl class="reservation-details">
-            <dt>Auto</dt>
-            <dd id="reservation-modal-car"></dd>
-            <dt>Rezerwujący</dt>
-            <dd id="reservation-modal-user"></dd>
-            <dt>Od</dt>
-            <dd id="reservation-modal-start"></dd>
-            <dt>Do</dt>
-            <dd id="reservation-modal-end"></dd>
-            <dt>Uwagi</dt>
-            <dd id="reservation-modal-notes"></dd>
-          </dl>
-          <div id="reservation-modal-actions" class="row reservation-modal-actions"></div>
-        </div>
-      </div>
-
-      <div id="cars-modal" class="modal hidden">
-        <div class="modal-content card">
-          <div class="row row-between">
-            <h3>Admin: zarządzanie autami</h3>
-            <button id="close-cars-modal" type="button">Zamknij</button>
-          </div>
-          <form id="car-form" class="row">
-            <input id="new-car-name" placeholder="Nazwa auta" required />
-            <button type="submit">Dodaj auto</button>
-          </form>
-          <div id="cars-table"></div>
-        </div>
-      </div>
 
       <p id="status" class="status"></p>
     </main>

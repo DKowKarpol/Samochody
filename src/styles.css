@@ -104,18 +104,24 @@ button:hover {
 
 .app-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 22%) minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
+  grid-template-columns: minmax(240px, 25%) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
 }
 
 .sidebar {
   position: sticky;
   top: 10px;
+  align-self: start;
 }
 
 .planner-card {
   width: 100%;
+  min-height: 420px;
+}
+
+.planner-wrap {
+  min-height: 260px;
 }
 
 .planner-hint {
