@@ -1,4 +1,3 @@
-import { API_BASE_URL } from "./config.js";
 import { appState } from "./state.js";
 import {
   addDays,
@@ -29,6 +28,7 @@ import {
   updateReservationTimes,
 } from "./services/reservations.js";
 
+const API_BASE_URL = "http://localhost:3000";
 const statusEl = document.querySelector("#status");
 
 const reservationForm = document.querySelector("#reservation-form");
@@ -85,6 +85,22 @@ function closeEditReservation() {
   editReservationModal.classList.add("hidden");
 }
 
+function normalizeStartToMinimumBooking(startDateValue, startTimeValue) {
+  const proposedStart = new Date(buildDateTime(startDateValue, startTimeValue));
+  const minBookingDate = getMinBookingDate();
+  if (proposedStart >= minBookingDate) {
+    return { startDateValue, startTimeValue, wasAdjusted: false };
+  }
+
+  const adjustedDateValue = toLocalInputValue(minBookingDate).slice(0, 10);
+  const adjustedTimeValue = toLocalInputValue(minBookingDate).slice(11, 16);
+  return {
+    startDateValue: adjustedDateValue,
+    startTimeValue: adjustedTimeValue,
+    wasAdjusted: true,
+  };
+}
+
 async function fetchCars() {
   const response = await fetch(`${API_BASE_URL}/api/cars`);
   if (!response.ok) {
@@ -107,7 +123,7 @@ async function fetchReservations() {
 }
 
 async function saveReservationTimes(id, startDate, endDate) {
-  const found = appState.reservations.find((r) => r.id === id);
+  const found = appState.reservations.find((r) => Number(r.id) === Number(id));
   if (!found) return;
 
   const hasConflict = await checkReservationConflict(
@@ -205,14 +221,16 @@ async function createReservation(event) {
   const timeError = validateBookingTimes(startInput.value, endInput.value);
   if (timeError) return setStatus(timeError, true);
 
-  const startRaw = buildDateTime(startDateInput.value, startInput.value);
+  const normalizedStart = normalizeStartToMinimumBooking(startDateInput.value, startInput.value);
+  if (normalizedStart.wasAdjusted) {
+    startDateInput.value = normalizedStart.startDateValue;
+    startInput.value = normalizedStart.startTimeValue;
+  }
+
+  const startRaw = buildDateTime(normalizedStart.startDateValue, normalizedStart.startTimeValue);
   const endRaw = buildDateTime(endDateInput.value, endInput.value);
   if (!carId || !startRaw || !endRaw) return setStatus("Wszystkie pola są wymagane.", true);
   if (startRaw >= endRaw) return setStatus("Data startu musi być wcześniejsza niż końca.", true);
-  const minBookingDate = getMinBookingDate();
-  if (new Date(startRaw) < minBookingDate) {
-    return setStatus("Nie można rezerwować wstecz. Minimalny termin to teraz + 10 minut.", true);
-  }
 
   const personName = personNameInput.value.trim();
   if (!personName) return setStatus("Osoba rezerwująca jest wymagana.", true);
@@ -254,7 +272,7 @@ async function deleteReservation(id) {
 }
 
 function openEditReservationForm(id) {
-  const reservation = appState.reservations.find((r) => r.id === id);
+  const reservation = appState.reservations.find((r) => Number(r.id) === Number(id));
   if (!reservation) return;
   const start = parseDbTimestamp(reservation.start_time);
   const end = parseDbTimestamp(reservation.end_time);

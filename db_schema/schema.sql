@@ -1,60 +1,59 @@
-create table if not exists public."Cars" (
-  id bigint primary key,
-  name text not null unique
+if object_id('dbo.trg_reservation_conflict', 'TR') is not null
+  drop trigger dbo.trg_reservation_conflict;
+
+if object_id('dbo.Reservations', 'U') is not null
+  drop table dbo.Reservations;
+
+if object_id('dbo.Cars', 'U') is not null
+  drop table dbo.Cars;
+
+create table dbo.Cars (
+  id int not null primary key,
+  name nvarchar(255) not null unique
 );
 
-create table if not exists public."Reservations" (
-  id bigint generated always as identity primary key,
-  car_id bigint not null references public."Cars"(id),
-  user_name text not null,
-  start_time timestamp not null,
-  end_time timestamp not null,
-  uwagi text
+create table dbo.Reservations (
+  id int identity(1,1) not null primary key,
+  car_id int not null,
+  user_name nvarchar(255) not null,
+  start_time datetime2 not null,
+  end_time datetime2 not null,
+  uwagi nvarchar(max) null,
+  constraint FK_Reservations_Cars foreign key (car_id) references dbo.Cars(id),
+  constraint CK_Reservations_TimeValid check (start_time < end_time)
 );
 
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint c
-    join pg_class t on t.oid = c.conrelid
-    where t.relname = 'Reservations'
-      and c.conname = 'reservations_time_valid'
-  ) then
-    alter table public."Reservations"
-      add constraint reservations_time_valid check (start_time < end_time);
-  end if;
-end $$;
+go
 
-create or replace function public.check_reservation_conflict()
-returns trigger
-language plpgsql
-as $$
+create trigger dbo.trg_reservation_conflict
+on dbo.Reservations
+after insert, update
+as
 begin
+  set nocount on;
+
   if exists (
     select 1
-    from public."Reservations" r
-    where r.car_id = new.car_id
-      and r.id <> coalesce(new.id, -1)
-      and r.start_time < new.end_time
-      and r.end_time > new.start_time
-  ) then
-    raise exception 'Konflikt rezerwacji dla wybranego auta.';
-  end if;
-  return new;
+    from inserted i
+    join dbo.Reservations r
+      on r.car_id = i.car_id
+     and r.id <> i.id
+     and r.start_time < i.end_time
+     and r.end_time > i.start_time
+  )
+  begin
+    throw 50001, N'Konflikt rezerwacji dla wybranego auta.', 1;
+  end;
 end;
-$$;
+go
 
-drop trigger if exists trg_reservation_conflict on public."Reservations";
-create trigger trg_reservation_conflict
-before insert or update on public."Reservations"
-for each row execute function public.check_reservation_conflict();
-
-insert into public."Cars"(id, name)
-values
-  (1, 'Passat'),
-  (2, 'Caddy'),
-  (3, 'Tiguan'),
-  (4, 'Crafter'),
-  (5, 'Sprinter')
-on conflict (id) do update set name = excluded.name;
+insert into dbo.Cars (id, name)
+select 1, N'Passat' where not exists (select 1 from dbo.Cars where id = 1);
+insert into dbo.Cars (id, name)
+select 2, N'Caddy' where not exists (select 1 from dbo.Cars where id = 2);
+insert into dbo.Cars (id, name)
+select 3, N'Tiguan' where not exists (select 1 from dbo.Cars where id = 3);
+insert into dbo.Cars (id, name)
+select 4, N'Crafter' where not exists (select 1 from dbo.Cars where id = 4);
+insert into dbo.Cars (id, name)
+select 5, N'Sprinter' where not exists (select 1 from dbo.Cars where id = 5);

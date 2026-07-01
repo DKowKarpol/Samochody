@@ -5,14 +5,14 @@ Prosta aplikacja frontendowa do rezerwacji aut.
 ## Co zawiera
 
 - lista rezerwacji,
-- operacje CRUD wtkonywalne na rezerwacjach,
-- walidacja dat i blokada konfliktów (frontend + trigger SQL),
-- historia zmian rezerwacji (`reservation_history`),
-- realtime dla `reservations`.
+- operacje CRUD wykonywalne na rezerwacjach,
+- walidacja dat i blokada konfliktów po stronie frontend i SQL Server,
+- prosty backend API dla aut i rezerwacji,
+- formularz rezerwacji pojedynczej i długoterminowej.
 
 ## Uruchomienie
 
-Ten projekt może działać z SQL Server lub Supabase. Użyj  pliku `supabase/schema.sql` do utworzenia tabel i struktur i połącz się z SQL Server w backendzie lub odpowiednio z Supabase.
+Ten projekt działa z SQL Server.
 
 1. Skonfiguruj plik `.env` w katalogu głównym projektu na podstawie `./.env.example`.
 2. Zainstaluj zależności backendu:
@@ -47,5 +47,9 @@ W pliku `.env` ustaw:
 - `MSSQL_DATABASE`
 - `MSSQL_ENCRYPT` (true/false)
 - `MSSQL_TRUST_CERT` (true/false)
+
+## Schemat bazy
+
+Schemat SQL Server znajduje się w `supabase/schema.sql` oraz w `db_schema/schema.sql` jako kopia zapasowa.
 
 

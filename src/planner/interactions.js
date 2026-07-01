@@ -41,7 +41,7 @@ function getDayDateForTrack(track) {
 }
 
 function findReservation(id) {
-  return appState.reservations.find((r) => r.id === id);
+  return appState.reservations.find((r) => Number(r.id) === Number(id));
 }
 
 function applyPreview(item, leftPct, widthPct) {
@@ -76,12 +76,34 @@ function previewMove(item, dayDate, startMinutes, durationMinutes) {
   return { startMinutes: start, endMinutes: end };
 }
 
+function tryCapturePointer(item, pointerId) {
+  if (typeof item.setPointerCapture !== "function") return;
+  if (typeof pointerId !== "number" || pointerId <= 0) return;
+  try {
+    item.setPointerCapture(pointerId);
+  } catch {
+    // Ignore browsers or synthetic events that reject pointer capture.
+  }
+}
+
+function tryReleasePointer(item, pointerId) {
+  if (typeof item.releasePointerCapture !== "function") return;
+  if (typeof pointerId !== "number" || pointerId <= 0) return;
+  try {
+    item.releasePointerCapture(pointerId);
+  } catch {
+    // Ignore if capture was never acquired or the element re-rendered.
+  }
+}
+
 export function setupPlannerInteractions(container, {
   onTimesChange,
   onOpenDetails,
   onRevert,
   setStatus,
 }) {
+  let suppressClick = false;
+
   container.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
 
@@ -117,7 +139,7 @@ export function setupPlannerInteractions(container, {
         startX: event.clientX,
         moved: false,
       };
-      item.setPointerCapture(event.pointerId);
+      tryCapturePointer(item, event.pointerId);
       item.classList.add("is-active");
       return;
     }
@@ -151,7 +173,7 @@ export function setupPlannerInteractions(container, {
       startX: event.clientX,
       moved: false,
     };
-    item.setPointerCapture(event.pointerId);
+    tryCapturePointer(item, event.pointerId);
     item.classList.add("is-dragging");
   });
 
@@ -230,13 +252,10 @@ export function setupPlannerInteractions(container, {
     const state = dragState;
     dragState = null;
     clearDropTargets();
+    suppressClick = true;
 
     state.item.classList.remove("is-dragging", "is-active");
-    try {
-      state.item.releasePointerCapture(event.pointerId);
-    } catch {
-      /* element may be re-rendered */
-    }
+    tryReleasePointer(state.item, event.pointerId);
 
     if (!state.moved) {
       onOpenDetails(state.reservationId);
@@ -300,11 +319,25 @@ export function setupPlannerInteractions(container, {
     await onTimesChange(state.reservationId, newStart, newEnd);
   });
 
+  container.addEventListener("click", (event) => {
+    if (suppressClick) {
+      suppressClick = false;
+      return;
+    }
+
+    const item = event.target.closest(".planner-item");
+    if (!item) return;
+    const reservationId = Number(item.dataset.reservationId);
+    if (!reservationId) return;
+    onOpenDetails(reservationId);
+  });
+
   container.addEventListener("pointercancel", () => {
     if (!dragState) return;
     dragState.item?.classList.remove("is-dragging", "is-active");
     clearDropTargets();
     dragState = null;
+    suppressClick = false;
     onRevert?.();
   });
 
