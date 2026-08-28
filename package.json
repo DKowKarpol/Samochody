@@ -2,7 +2,7 @@
   "name": "samochody-backend",
   "version": "1.0.0",
   "type": "module",
-  "description": "Backend API for cars reservation app using SQL Server",
+  "description": "Frontend for cars reservation app using Supabase",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js"

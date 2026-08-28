@@ -91,14 +91,17 @@ export function renderReservations() {
           const width = Math.max(toWindowPercent(durationMinutes), 0.5);
           const top = ROW_PADDING + item.lane * (CARD_HEIGHT + CARD_GAP);
           const isPast = item.end < now;
+          const isOngoing = item.start <= now && item.end > now;
+          const isQuickReservation = r.uwagi && r.uwagi.includes("Rezerwacja szybka");
           const statusClass = isPast ? "past" : "active";
+          const quickClass = isQuickReservation && isOngoing ? "quick-reservation" : "";
           const userName = escapeHtml(r.user_name || "-");
-          const editable = !isPast;
+          const editable = !isPast && !isOngoing;
           const canResizeStart = editable && item.visibleStart.getTime() === item.start.getTime();
-          const canResizeEnd = editable && item.visibleEnd.getTime() === item.end.getTime();
+          const canResizeEnd = !isPast && item.visibleEnd.getTime() === item.end.getTime();
           const durationMs = item.end.getTime() - item.start.getTime();
 
-          return `<div class="planner-item ${statusClass}${editable ? " draggable" : ""}"
+          return `<div class="planner-item ${statusClass} ${quickClass}${editable ? " draggable" : ""}"
             style="left:${left}%;width:${width}%;top:${top}px;height:${CARD_HEIGHT}px"
             data-reservation-id="${r.id}"
             data-day-index="${dayIndex}"

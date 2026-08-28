@@ -119,10 +119,19 @@ export function setupPlannerInteractions(container, {
     const end = parseDbTimestamp(reservation.end_time);
     if (!start || !end) return;
 
+    const now = new Date();
+    const isOngoing = start <= now && end > now;
+
     if (handle) {
       const mode = handle.dataset.handle === "start" ? "resize-start" : "resize-end";
       if (mode === "resize-start" && item.dataset.canResizeStart !== "1") return;
-      if (mode === "resize-end" && item.dataset.canResizeEnd !== "1") return;
+      if (mode === "resize-end" && item.dataset.canResizeEnd !== "1") {
+        if (isOngoing && mode === "resize-end") {
+          // Allow resizing end for ongoing reservations
+        } else {
+          return;
+        }
+      }
       event.preventDefault();
       event.stopPropagation();
       const track = item.closest(".planner-day-track");
@@ -138,13 +147,14 @@ export function setupPlannerInteractions(container, {
         pointerId: event.pointerId,
         startX: event.clientX,
         moved: false,
+        isOngoing,
       };
       tryCapturePointer(item, event.pointerId);
       item.classList.add("is-active");
       return;
     }
 
-    if (item.dataset.canDrag !== "1") {
+    if (item.dataset.canDrag !== "1" || isOngoing) {
       dragState = {
         mode: "view",
         item,
@@ -231,11 +241,20 @@ export function setupPlannerInteractions(container, {
     }
 
     if (dragState.mode === "resize-end") {
-      const endMinutes = clampResizeEndMinutes(
+      let endMinutes = clampResizeEndMinutes(
         dragState.dayDate,
         minutes,
         dragState.originStart
       );
+
+      // For ongoing reservations, end cannot be before now + 10 minutes
+      if (dragState.isOngoing) {
+        const minBooking = getMinBookingDate();
+        const { windowStart } = getDayWindow(dragState.dayDate);
+        const minBookingMinutes = (minBooking.getTime() - windowStart.getTime()) / 60000;
+        endMinutes = Math.max(endMinutes, minBookingMinutes);
+      }
+
       const startMinutes = (dragState.originStart.getTime() - windowStart.getTime()) / 60000;
       applyPreview(
         dragState.item,
@@ -304,19 +323,29 @@ export function setupPlannerInteractions(container, {
       return;
     }
 
-    const minBooking = getMinBookingDate();
-    if (newStart < minBooking) {
-      setStatus("Nie można ustawić rezerwacji w przeszłości.", true);
-      onRevert?.();
-      return;
+    // Dla resize-end rezerwacji trwającej skip walidacji start (start jest w przeszłości)
+    if (!(state.mode === "resize-end" && state.isOngoing)) {
+      const minBooking = getMinBookingDate();
+      if (newStart < minBooking) {
+        setStatus("Nie można ustawić rezerwacji w przeszłości.", true);
+        onRevert?.();
+        return;
+      }
     }
+    
     if (newStart >= newEnd) {
       setStatus("Godzina końca musi być późniejsza niż startu.", true);
       onRevert?.();
       return;
     }
 
-    await onTimesChange(state.reservationId, newStart, newEnd);
+    try {
+      await onTimesChange(state.reservationId, newStart, newEnd);
+    } catch (error) {
+      console.error("Error updating reservation times:", error);
+      setStatus(`Błąd aktualizacji: ${error.message}`, true);
+      onRevert?.();
+    }
   });
 
   container.addEventListener("click", (event) => {

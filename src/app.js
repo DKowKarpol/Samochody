@@ -1,3 +1,4 @@
+import { supabase } from "./config.js";
 import { appState } from "./state.js";
 import {
   addDays,
@@ -11,6 +12,7 @@ import {
   toLocalInputValue,
   validateBookingTimes,
 } from "./utils/date.js";
+import { logError, setupGlobalErrorHandlers } from "./utils/errorLogger.js";
 import {
   setupLongtermModal,
   syncLongtermCarOptions,
@@ -28,7 +30,6 @@ import {
   updateReservationTimes,
 } from "./services/reservations.js";
 
-const API_BASE_URL = "http://localhost:3000";
 const statusEl = document.querySelector("#status");
 
 const reservationForm = document.querySelector("#reservation-form");
@@ -50,11 +51,20 @@ const editNotesInput = document.querySelector("#edit-modal-notes");
 const closeEditReservationModalBtn = document.querySelector("#close-edit-reservation-modal");
 const deleteReservationButton = document.querySelector("#delete-reservation-button");
 const cancelEditModalBtn = document.querySelector("#cancel-edit-modal");
+const endReservationButton = document.querySelector("#end-reservation-button");
+
+const quickReservationBtn = document.querySelector("#quick-reservation-btn");
+const quickReservationModal = document.querySelector("#quick-reservation-modal");
+const quickReservationForm = document.querySelector("#quick-reservation-form");
+const quickCarSelect = document.querySelector("#quick-car-select");
+const quickPersonNameInput = document.querySelector("#quick-person-name");
+const closeQuickReservationModalBtn = document.querySelector("#close-quick-reservation-modal");
 
 const weekPrevBtn = document.querySelector("#week-prev");
 const weekNextBtn = document.querySelector("#week-next");
 
 const longtermPersonNameInput = document.querySelector("#longterm-person-name");
+const LIVE_REFRESH_INTERVAL_MS = 15_000;
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -85,6 +95,85 @@ function closeEditReservation() {
   editReservationModal.classList.add("hidden");
 }
 
+function closeQuickReservationModal() {
+  quickReservationModal.classList.add("hidden");
+  quickReservationForm.reset();
+}
+
+function openQuickReservationModal() {
+  quickReservationModal.classList.remove("hidden");
+  if (appState.cars.length > 0) {
+    quickCarSelect.innerHTML = `
+      <option value="">Wybierz auto</option>
+      ${appState.cars
+        .map((car) => `<option value="${car.id}">${car.name}</option>`)
+        .join("")}
+    `;
+  }
+}
+
+async function createQuickReservation(event) {
+  event.preventDefault();
+  try {
+    const carId = Number(quickCarSelect.value);
+    const personName = quickPersonNameInput.value.trim();
+    
+    if (!carId || !personName) {
+      return setStatus("Wybierz auto i podaj osobę rezerwującą.", true);
+    }
+
+    const now = new Date();
+    const start = new Date(now.getTime());
+    const end = new Date(now.getTime() + 15 * 60 * 1000);
+
+    const startTime = `${toLocalInputValue(start).replace("T", " ")}:00`;
+    const endTime = `${toLocalInputValue(end).replace("T", " ")}:00`;
+
+    const hasConflict = await checkReservationConflict(carId, startTime, endTime);
+    if (hasConflict) {
+      return setStatus("To auto jest już zarezerwowane w tym momencie.", true);
+    }
+
+    await insertReservation({
+      car_id: carId,
+      user_name: personName,
+      start_time: startTime,
+      end_time: endTime,
+      uwagi: "Rezerwacja szybka",
+    });
+
+    await fetchReservations();
+    closeQuickReservationModal();
+    setStatus("Rezerwacja szybka utworzona.");
+  } catch (error) {
+    logError("createQuickReservation", error);
+    setStatus(`Błąd tworzenia rezerwacji szybkiej: ${error.message}`, true);
+  }
+}
+
+async function endReservation() {
+  try {
+    const reservationId = Number(editReservationModal.dataset.reservationId);
+    if (!reservationId) return;
+
+    const now = new Date();
+    const reservation = appState.reservations.find((r) => Number(r.id) === Number(reservationId));
+    
+    if (!reservation) return;
+
+    const startDate = parseDbTimestamp(reservation.start_time);
+    if (!startDate) return;
+
+    await updateReservation(reservationId, startDate, now, reservation.uwagi || "");
+    await fetchReservations();
+    closeEditReservation();
+    setStatus("Rezerwacja zakończona.");
+  } catch (error) {
+    logError("endReservation", error);
+    setStatus(`Błąd zakańczania rezerwacji: Nie można zakończyć rezerwacji, która jeszcze się nie rozpoczęła`, true);
+  }
+}
+
 function normalizeStartToMinimumBooking(startDateValue, startTimeValue) {
   const proposedStart = new Date(buildDateTime(startDateValue, startTimeValue));
   const minBookingDate = getMinBookingDate();
@@ -102,24 +191,32 @@ function normalizeStartToMinimumBooking(startDateValue, startTimeValue) {
 }
 
 async function fetchCars() {
-  const response = await fetch(`${API_BASE_URL}/api/cars`);
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || `Błąd ładowania aut: ${response.status}`);
+  try {
+    const { data, error } = await supabase.from("Cars").select("*").order("name");
+    if (error) throw error;
+    appState.cars = data || [];
+    carSelect.innerHTML = `
+      <option value="">Wybierz auto</option>
+      ${appState.cars
+        .map((car) => `<option value="${car.id}">${car.name}</option>`)
+        .join("")}
+    `;
+    syncLongtermCarOptions(appState.cars);
+  } catch (error) {
+    logError("fetchCars", error);
+    throw error;
   }
-  appState.cars = await response.json();
-  carSelect.innerHTML = `
-    <option value="">Wybierz auto</option>
-    ${appState.cars
-      .map((car) => `<option value="${car.id}">${car.name}</option>`)
-      .join("")}
-  `;
-  syncLongtermCarOptions(appState.cars);
 }
 
 async function fetchReservations() {
-  appState.reservations = await fetchReservationsFromDb();
-  renderReservations();
+  try {
+    const reservations = await fetchReservationsFromDb();
+    appState.reservations = reservations;
+    renderReservations();
+  } catch (error) {
+    logError("fetchReservations", error);
+    throw error;
+  }
 }
 
 async function saveReservationTimes(id, startDate, endDate) {
@@ -321,14 +418,30 @@ async function saveEditedReservation(event) {
 }
 
 async function refreshData() {
-  await fetchCars();
-  await fetchReservations();
+  renderReservations();
+  try {
+    await Promise.all([fetchCars(), fetchReservations()]);
+  } catch (error) {
+    setStatus(`Nie udało się pobrać danych: ${error.message}`, true);
+  }
+}
+
+async function refreshReservationsLive() {
+  try {
+    await fetchReservations();
+  } catch {
+    // Ignore transient network errors; the next poll will retry.
+  }
 }
 
 function subscribeRealtime() {
-  // SQL Server backend does not provide realtime updates for this frontend demo.
-  // Repeated polling or a websocket layer can be added later if needed.
-  return;
+  if (appState.realtimeChannel) supabase.removeChannel(appState.realtimeChannel);
+  appState.realtimeChannel = supabase
+    .channel("reservations-live")
+    .on("postgres_changes", { event: "*", schema: "public", table: "Reservations" }, async () => {
+      await fetchReservations();
+    })
+    .subscribe();
 }
 
 const reservationsContainer = getReservationsContainer();
@@ -349,9 +462,14 @@ reservationForm.addEventListener("submit", createReservation);
 editReservationModalForm.addEventListener("submit", saveEditedReservation);
 closeEditReservationModalBtn.addEventListener("click", closeEditReservation);
 cancelEditModalBtn.addEventListener("click", closeEditReservation);
+quickReservationBtn.addEventListener("click", openQuickReservationModal);
+closeQuickReservationModalBtn.addEventListener("click", closeQuickReservationModal);
+quickReservationForm.addEventListener("submit", createQuickReservation);
+endReservationButton.addEventListener("click", endReservation);
 
 document.addEventListener("click", (event) => {
   if (event.target === editReservationModal) closeEditReservation();
+  if (event.target === quickReservationModal) closeQuickReservationModal();
 });
 
 deleteReservationButton.addEventListener("click", async () => {
@@ -372,9 +490,23 @@ weekNextBtn.addEventListener("click", () => {
 });
 
 setBookingMinNow();
+renderReservations();
+
 setInterval(() => {
   setBookingMinNow();
   renderReservations();
 }, 30_000);
-await refreshData();
+
+setInterval(() => {
+  refreshReservationsLive();
+}, LIVE_REFRESH_INTERVAL_MS);
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    refreshReservationsLive();
+  }
+});
+
+setupGlobalErrorHandlers();
+void refreshData();
 subscribeRealtime();

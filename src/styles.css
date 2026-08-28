@@ -40,6 +40,11 @@ h1 {
   align-items: center;
 }
 
+.row button {
+  margin-top: 0;
+  width: auto;
+}
+
 .row-between {
   justify-content: space-between;
 }
@@ -316,6 +321,12 @@ button:hover {
   color: #1b3b22;
 }
 
+.planner-item.quick-reservation {
+  background: #fff9c4;
+  border-color: #fbc02d;
+  color: #6d5800;
+}
+
 .planner-item.mine {
   background: #dff8e8;
   border-color: #8ad0a3;
@@ -359,10 +370,15 @@ button:hover {
   width: 100%;
   margin-top: 10px;
   background: #5b6f86;
+  white-space: nowrap;
 }
 
 .btn-secondary:hover {
   background: #4a5c70;
+}
+
+.btn-danger {
+  white-space: nowrap;
 }
 
 .admin-shortcuts {
@@ -461,4 +477,8 @@ td {
   padding: 8px;
   text-align: left;
   font-size: 13px;
+}
+
+#notes{
+  resize: none;
 }

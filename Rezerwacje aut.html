@@ -42,10 +42,13 @@
               </label>
               <label>
                 Uwagi (opcjonalnie)
-                <textarea id="notes" rows="3" placeholder="Np. wyjazd do klienta"></textarea>
+                <textarea id="notes" rows="3" placeholder="Np. wyjazd do Wałcza"></textarea>
               </label>
               <button type="submit">Dodaj rezerwację</button>
             </form>
+            <button id="quick-reservation-btn" type="button" class="btn-secondary">
+              Szybka rezerwacja
+            </button>
             <button id="open-longterm-modal" type="button" class="btn-secondary">
               Rezerwacja długoterminowa
             </button>
@@ -107,6 +110,27 @@
         </div>
       </div>
 
+      <div id="quick-reservation-modal" class="modal hidden">
+        <div class="modal-content card reservation-modal-content">
+          <div class="row row-between">
+            <h3>Szybka rezerwacja </h3>
+            <button id="close-quick-reservation-modal" type="button">Zamknij</button>
+          </div>
+          <p class="muted">Rezerwacja na 15 minut z możliwością wydłużenia.</p>
+          <form id="quick-reservation-form" class="grid">
+            <label>
+              Auto
+              <select id="quick-car-select" required></select>
+            </label>
+            <label>
+              Osoba rezerwująca
+              <input id="quick-person-name" type="text" required />
+            </label>
+            <button type="submit">Utwórz rezerwację szybką</button>
+          </form>
+        </div>
+      </div>
+
       <div id="edit-reservation-modal" class="modal hidden">
         <div class="modal-content card reservation-modal-content">
           <div class="row row-between">
@@ -132,11 +156,14 @@
             </label>
             <label>
               Uwagi
-              <textarea id="edit-modal-notes" rows="3" placeholder="Np. wyjazd do klienta"></textarea>
+              <textarea id="edit-modal-notes" rows="3" placeholder="Np. wyjazd do Wałcza"></textarea>
             </label>
             <div class="row row-between">
               <button type="submit">Zapisz zmiany</button>
-              <button id="delete-reservation-button" type="button" class="btn-danger">Usuń rezerwację</button>
+              <div class="row">
+                <button id="delete-reservation-button" type="button" class="btn-danger">Usuń rezerwację</button>
+                <button id="end-reservation-button" type="button" class="btn-secondary">Zakończ rezerwację</button>
+              </div>
               <button id="cancel-edit-modal" type="button">Anuluj</button>
             </div>
           </form>
