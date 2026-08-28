@@ -12,11 +12,16 @@ Prosta aplikacja frontendowa oparta o Supabase.
 
 ## Uruchomienie
 
-1. W Supabase uruchom SQL z pliku `./supabase/schema.sql` lub odpowiedni schemat z `./db_schema/schema.sql`.
+1. W Supabase uruchom SQL z pliku `./supabase/schema.sql`.
 2. W katalogu projektu uruchom serwer statyczny:
    - `python -m http.server 5500`
 3. Otwórz przeglądarkę:
    - `http://localhost:5500`
+
+## Wdrożenie na Vercel
+
+Projekt jest statyczną aplikacją. Zaimportuj repozytorium w Vercel i wybierz preset `Other`.
+Pozostaw `Build Command` puste. Plik `index.html` jest punktem wejścia aplikacji.
 
 ## Schemat bazy
 

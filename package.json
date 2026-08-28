@@ -1,16 +1,6 @@
 {
-  "name": "samochody-backend",
+  "name": "samochody",
   "version": "1.0.0",
   "type": "module",
-  "description": "Frontend for cars reservation app using Supabase",
-  "main": "server/server.js",
-  "scripts": {
-    "start": "node server/server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.4",
-    "mssql": "^9.1.1"
-  }
+  "description": "Static car reservation app using Supabase"
 }

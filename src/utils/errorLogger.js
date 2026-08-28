@@ -1,22 +1,3 @@
-/**
- * Error logging utility that writes error information to a backend log file.
- */
-
-async function logErrorToBackend(errorData) {
-  try {
-    const response = await fetch("/api/error-log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(errorData),
-    });
-    if (!response.ok) {
-      console.error("Failed to log error to backend:", response.status);
-    }
-  } catch (err) {
-    console.error("Failed to send error log to backend:", err);
-  }
-}
-
 export function logError(context, error, additionalInfo = {}) {
   const timestamp = new Date().toISOString();
   const message = error instanceof Error ? error.message : String(error);
@@ -33,8 +14,6 @@ export function logError(context, error, additionalInfo = {}) {
   };
 
   console.error(`[${context}]`, errorData);
-
-  logErrorToBackend(errorData);
 }
 
 export function setupGlobalErrorHandlers() {
